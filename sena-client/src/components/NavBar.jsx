@@ -3,7 +3,7 @@ import { FaHome, FaUser, FaFileAlt } from 'react-icons/fa';
 import logo from '../assets/logo.png';
 
 const links = [
-  { label: 'Home', to: '/', icon: <FaHome /> },
+  { label: 'Home', to: '/home', icon: <FaHome /> },
   { label: 'About', to: '/about', icon: <FaUser /> },
   { label: 'Articles', to: '/articles', icon: <FaFileAlt /> },
 ];
@@ -34,7 +34,7 @@ const NavBar = () => {
             <NavLink
               key={link.to}
               to={link.to}
-              end={link.to === '/'}
+              end={link.to === '/home'}
               className={navLinkClassName}
             >
               {link.icon}

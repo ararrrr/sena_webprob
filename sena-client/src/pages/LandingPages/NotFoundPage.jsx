@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import Button from '../components/Button';
+import Button from '../../components/Button';
 
 function NotFoundPage() {
   return (
@@ -13,7 +13,7 @@ function NotFoundPage() {
           404
         </h1>
 
-        <div className="mx-auto mt-6 h-px w-28 bg-gradient-to-r from-transparent via-zinc-500 to-transparent" />
+        <div className="mx-auto mt-6 h-px w-44 bg-gradient-to-r from-transparent via-zinc-500 to-transparent" />
 
         <h2 className="mt-6 text-2xl font-semibold text-white sm:text-3xl">
           You drifted beyond our mapped universe.
@@ -24,7 +24,7 @@ function NotFoundPage() {
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button to="/" className="border-zinc-100 bg-zinc-50 text-zinc-950 hover:bg-zinc-200">
+          <Button to="/home" className="border-zinc-100 bg-zinc-50 text-zinc-950 hover:bg-zinc-200">
             Return Home
           </Button>
           <Link

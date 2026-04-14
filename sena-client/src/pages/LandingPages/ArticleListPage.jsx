@@ -1,6 +1,6 @@
-import Button from '../components/Button';
-import ArticleList from '../components/ArticleList';
-import articles from '../assets/article-content.js';
+import Button from '../../components/Button';
+import ArticleList from '../../components/ArticleList';
+import articles from '../../assets/article-content.js';
 
 const ArticleListPage = () => {
   return (
@@ -25,7 +25,7 @@ const ArticleListPage = () => {
 
             <div className="mt-6">
               <Button
-                to="/"
+                to="/home"
                 className="border-violet-600 bg-violet-600 text-white hover:bg-violet-500"
               >
                 Back Home
