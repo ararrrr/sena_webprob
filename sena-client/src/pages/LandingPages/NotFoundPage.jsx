@@ -24,7 +24,7 @@ function NotFoundPage() {
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button to="/home" className="border-zinc-100 bg-zinc-50 text-zinc-950 hover:bg-zinc-200">
+          <Button to="/" className="border-zinc-100 bg-zinc-50 text-zinc-950 hover:bg-zinc-200">
             Return Home
           </Button>
           <Link

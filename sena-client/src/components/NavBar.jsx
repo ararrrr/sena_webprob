@@ -1,9 +1,9 @@
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { FaHome, FaUser, FaFileAlt } from 'react-icons/fa';
 import logo from '../assets/logo.png';
 
 const links = [
-  { label: 'Home', to: '/home', icon: <FaHome /> },
+  { label: 'Home', to: '/', icon: <FaHome /> },
   { label: 'About', to: '/about', icon: <FaUser /> },
   { label: 'Articles', to: '/articles', icon: <FaFileAlt /> },
 ];
@@ -30,17 +30,26 @@ const NavBar = () => {
 
         {/* Links */}
         <div className="flex items-center gap-2">
-          {links.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.to === '/home'}
-              className={navLinkClassName}
-            >
-              {link.icon}
-              {link.label}
-            </NavLink>
-          ))}
+          <div className="flex items-center gap-2">
+            {links.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === '/'}
+                className={navLinkClassName}
+              >
+                {link.icon}
+                {link.label}
+              </NavLink>
+            ))}
+          </div>
+
+          <Link
+            to="/auth/signin"
+            className="ml-2 inline-flex items-center justify-center rounded-full border border-white bg-white px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-zinc-200"
+          >
+            Login
+          </Link>
         </div>
 
       </div>

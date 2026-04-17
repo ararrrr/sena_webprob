@@ -25,7 +25,7 @@ const ArticleListPage = () => {
 
             <div className="mt-6">
               <Button
-                to="/home"
+                to="/"
                 className="border-violet-600 bg-violet-600 text-white hover:bg-violet-500"
               >
                 Back Home

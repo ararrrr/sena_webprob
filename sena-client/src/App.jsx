@@ -39,11 +39,11 @@ const routes = [
     children: [
       {
         path: '',
-        element: <Navigate to="/auth/signin" replace />,
+        element: <HomePage />,
       },
       {
         path: 'home',
-        element: <HomePage />,
+        element: <Navigate to="/" replace />,
       },
       {
         path: 'about',

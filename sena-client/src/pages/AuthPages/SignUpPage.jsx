@@ -15,7 +15,7 @@ const SignUpPage = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    navigate('/home');
+    navigate('/');
   };
 
   return (

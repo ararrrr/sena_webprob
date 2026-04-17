@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
 const quickLinks = [
-  { label: 'Home', to: '/home' },
+  { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Articles', to: '/articles' },
 ];

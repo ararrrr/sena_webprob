@@ -32,7 +32,7 @@ const AboutPage = () => {
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <Button to="/home" className="bg-violet-600 text-white border-violet-600 hover:bg-violet-500">
+              <Button to="/" className="bg-violet-600 text-white border-violet-600 hover:bg-violet-500">
                 Back Home
               </Button>
               <Button to="/articles" className="border-zinc-500 text-zinc-200 hover:bg-zinc-800">
