@@ -48,7 +48,7 @@ const NavBar = () => {
             to="/auth/signin"
             className="ml-2 inline-flex items-center justify-center rounded-full border border-white bg-white px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-zinc-200"
           >
-            Login
+            Logout
           </Link>
         </div>
 

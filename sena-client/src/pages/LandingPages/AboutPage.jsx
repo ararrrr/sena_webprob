@@ -10,7 +10,7 @@ const AboutPage = () => {
         <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
           <div className="rounded-3xl border border-zinc-700 bg-zinc-900 p-4">
             <img
-              src="https://wallpapers.com/images/hd/milky-way-with-billions-of-stars-pqj5nfyx8fkvc9j0.jpg"
+              src="https://c4.wallpaperflare.com/wallpaper/197/582/378/eye-of-space-star-wallpaper-preview.jpg"
               alt="Universe"
               className="h-[300px] w-full rounded-2xl object-cover brightness-75"
             />

@@ -11,27 +11,12 @@ import ArticleListPage from './pages/LandingPages/ArticleListPage.jsx';
 import SignInPage from './pages/AuthPages/SignInPage.jsx';
 import SignUpPage from './pages/AuthPages/SignUpPage.jsx';
 import NotFoundPage from './pages/LandingPages/NotFoundPage.jsx';
+import DashLayout from './layouts/DashLayout.jsx';
+import DashboardPage from './pages/DashboardPages/DashboardPage.jsx';
+import ReportsPage from './pages/DashboardPages/Reports.jsx';
+import UsersPage from './pages/DashboardPages/UsersPage.jsx';
 
 const routes = [
-  {
-    path: '/auth',
-    element: <AuthLayout />,
-    errorElement: <NotFoundPage />,
-    children: [
-      {
-        path: '',
-        element: <Navigate to="signin" replace />,
-      },
-      {
-        path: 'signin',
-        element: <SignInPage />,
-      },
-      {
-        path: 'signup',
-        element: <SignUpPage />,
-      },
-    ],
-  },
   {
     path: '/',
     element: <Layout />,
@@ -57,9 +42,43 @@ const routes = [
         path: 'articles/:name',
         element: <ArticlePage />,
       },
+    ],
+  },
+  {
+    path: '/auth',
+    element: <AuthLayout />,
+    errorElement: <NotFoundPage />,
+    children: [
       {
-        path: '*',
-        element: <NotFoundPage />,
+        path: '',
+        element: <Navigate to="signin" replace />,
+      },
+      {
+        path: 'signin',
+        element: <SignInPage />,
+      },
+      {
+        path: 'signup',
+        element: <SignUpPage />,
+      },
+    ],
+  },
+  {
+    path: '/dashboard',
+    element: <DashLayout />,
+    errorElement: <NotFoundPage />,
+    children: [
+      {
+        path: '',
+        element: <DashboardPage />,
+      },
+      {
+        path: 'reports',
+        element: <ReportsPage />,
+      },
+      {
+        path: 'users',
+        element: <UsersPage />,
       },
     ],
   },
