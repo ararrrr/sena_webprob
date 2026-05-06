@@ -17,7 +17,6 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
@@ -25,6 +24,14 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import Button from '@mui/material/Button';
 
 const drawerWidth = 240;
+
+const drawerSurface = {
+  background:
+    'linear-gradient(180deg, rgba(24,24,27,0.98) 0%, rgba(9,9,11,1) 72%)',
+  color: '#f4f4f5',
+  borderRight: '1px solid rgba(255,255,255,0.1)',
+  boxShadow: '16px 0 36px rgba(0,0,0,0.28)',
+};
 
 const dashboardNavItems = [
   {
@@ -49,6 +56,7 @@ const dashboardNavItems = [
 
 const openedMixin = (theme) => ({
   width: drawerWidth,
+  ...drawerSurface,
   transition: theme.transitions.create('width', {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.enteringScreen,
@@ -57,6 +65,7 @@ const openedMixin = (theme) => ({
 });
 
 const closedMixin = (theme) => ({
+  ...drawerSurface,
   transition: theme.transitions.create('width', {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -74,12 +83,18 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end',
   padding: theme.spacing(0, 1),
   ...theme.mixins.toolbar,
+  minHeight: 76,
 }));
 
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
 })(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  background: 'rgba(9,9,11,0.88)',
+  color: '#f4f4f5',
+  borderBottom: '1px solid rgba(255,255,255,0.08)',
+  boxShadow: '0 12px 30px rgba(0,0,0,0.28)',
+  backdropFilter: 'blur(14px)',
   transition: theme.transitions.create(['width', 'margin'], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -123,10 +138,11 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  borderRadius: 12,
+  border: '1px solid rgba(255,255,255,0.1)',
+  backgroundColor: alpha(theme.palette.common.white, 0.06),
   '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
+    backgroundColor: alpha(theme.palette.common.white, 0.1),
   },
   marginRight: theme.spacing(2),
   marginLeft: 0,
@@ -173,20 +189,28 @@ const DashLayout = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#09090b' }}>
       <CssBaseline />
       <AppBar position="fixed" open={open}>
-        <Toolbar>
+        <Toolbar sx={{ minHeight: 76 }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             onClick={open ? handleDrawerClose : handleDrawerOpen}
             edge="start"
-            sx={{ marginRight: 5, ...(open && { display: 'none' }) }}
+            sx={{
+              mr: { xs: 2, sm: 4 },
+              width: 42,
+              height: 42,
+              borderRadius: 2,
+              bgcolor: 'rgba(255,255,255,0.06)',
+              '&:hover': { bgcolor: 'rgba(139,92,246,0.18)' },
+              ...(open && { display: 'none' }),
+            }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 700 }}>
             {pageTitle}
           </Typography>
           <Search>
@@ -198,19 +222,69 @@ const DashLayout = () => {
               inputProps={{ 'aria-label': 'search' }}
             />
           </Search>
-          <Button color="inherit" variant="outlined" onClick={handleLogout}>
+          <Button
+            color="inherit"
+            variant="outlined"
+            onClick={handleLogout}
+            sx={{
+              borderColor: 'rgba(255,255,255,0.2)',
+              borderRadius: 2,
+              '&:hover': { borderColor: 'rgba(196,181,253,0.7)', bgcolor: 'rgba(196,181,253,0.08)' },
+            }}
+          >
             Logout
           </Button>
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" open={open}>
-        <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
-            {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+        <DrawerHeader sx={{ justifyContent: open ? 'space-between' : 'center', px: 1.25, minHeight: 76 }}>
+          {open ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  placeItems: 'center',
+                  width: 42,
+                  height: 42,
+                  borderRadius: 2,
+                  bgcolor: 'rgba(139,92,246,0.18)',
+                  border: '1px solid rgba(196,181,253,0.22)',
+                  color: '#ddd6fe',
+                  fontWeight: 800,
+                }}
+              >
+                U
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+              <Typography variant="overline" sx={{ color: '#c4b5fd', letterSpacing: '0.18em' }}>
+                Universe
+              </Typography>
+              <Typography variant="subtitle1" sx={{ mt: -0.75, fontWeight: 700 }}>
+                Admin
+              </Typography>
+              </Box>
+            </Box>
+          ) : null}
+          <IconButton
+            onClick={handleDrawerClose}
+            sx={{
+              color: '#f4f4f5',
+              width: 42,
+              height: 42,
+              borderRadius: 2,
+              bgcolor: open ? 'rgba(255,255,255,0.04)' : 'rgba(139,92,246,0.18)',
+              '&:hover': { bgcolor: 'rgba(139,92,246,0.24)' },
+            }}
+          >
+            {open ? (
+              theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />
+            ) : (
+              <MenuIcon />
+            )}
           </IconButton>
         </DrawerHeader>
-        <Divider />
-        <List>
+        <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+        <List sx={{ px: 0, py: 1.25 }}>
           {dashboardNavItems.map(({ label, to, icon: Icon }) => (
             <ListItem key={to} disablePadding sx={{ display: 'block' }}>
               <ListItemButton
@@ -219,26 +293,66 @@ const DashLayout = () => {
                 selected={location.pathname === to}
                 sx={{
                   minHeight: 48,
-                  px: 2.5,
+                  width: open ? 'auto' : 56,
+                  height: open ? 48 : 56,
+                  px: open ? 2 : 0,
+                  mx: open ? 1.25 : 'auto',
+                  my: 0.75,
+                  borderRadius: 2,
+                  display: open ? 'flex' : 'grid',
                   justifyContent: open ? 'initial' : 'center',
+                  alignItems: 'center',
+                  placeItems: open ? 'initial' : 'center',
+                  color: location.pathname === to ? '#ffffff' : '#a1a1aa',
+                  '&.Mui-selected': {
+                    bgcolor: 'rgba(139,92,246,0.22)',
+                    border: '1px solid rgba(196,181,253,0.26)',
+                    color: '#ffffff',
+                    boxShadow: '0 10px 24px rgba(124,58,237,0.16)',
+                  },
+                  '&.Mui-selected:hover, &:hover': {
+                    bgcolor: 'rgba(139,92,246,0.12)',
+                    color: '#ffffff',
+                  },
                 }}
               >
-                <ListItemIcon
+                <Box
                   sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : 'auto',
-                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    mr: open ? 2 : 0,
+                    display: 'grid',
+                    placeItems: 'center',
+                    flex: '0 0 32px',
+                    color: 'inherit',
+                    '& svg': {
+                      display: 'block',
+                      width: 24,
+                      height: 24,
+                      margin: 0,
+                      transform: 'translateX(0)',
+                    },
                   }}
                 >
-                  <Icon />
-                </ListItemIcon>
-                <ListItemText primary={label} sx={{ opacity: open ? 1 : 0 }} />
+                  {React.createElement(Icon)}
+                </Box>
+                {open ? <ListItemText primary={label} /> : null}
               </ListItemButton>
             </ListItem>
           ))}
         </List>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          minWidth: 0,
+          p: { xs: 2, md: 3 },
+          color: '#f4f4f5',
+          background:
+            'radial-gradient(circle at top right, rgba(124,58,237,0.16), transparent 34%), #09090b',
+        }}
+      >
         <DrawerHeader />
         <Outlet />
       </Box>

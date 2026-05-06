@@ -1,238 +1,720 @@
-import React from 'react';
+import { useState } from 'react';
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  Paper,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import SearchIcon from '@mui/icons-material/Search';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PeopleIcon from '@mui/icons-material/People';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { DataGrid } from '@mui/x-data-grid';
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import usersSeed from '../../assets/users.json?raw';
 
-const userRows = [
-  {
-    id: 1,
-    name: 'Jon Snow',
-    email: 'jon.snow@email.com',
-    role: 'Administrator',
-    department: 'Operations',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    name: 'Cersei Lannister',
-    email: 'cersei.l@email.com',
-    role: 'Manager',
-    department: 'Finance',
-    status: 'Inactive',
-  },
-  {
-    id: 3,
-    name: 'Arya Stark',
-    email: 'arya.stark@email.com',
-    role: 'Staff',
-    department: 'Support',
-    status: 'Active',
-  },
-  {
-    id: 4,
-    name: 'Jaime Lannister',
-    email: 'jaime.l@email.com',
-    role: 'Analyst',
-    department: 'Reports',
-    status: 'Active',
-  },
-  {
-    id: 5,
-    name: 'Daenerys Targaryen',
-    email: 'dany@email.com',
-    role: 'Supervisor',
-    department: 'Administration',
-    status: 'Pending',
-  },
-  {
-    id: 6,
-    name: 'Harvey Roxie',
-    email: 'harvey@email.com',
-    role: 'Staff',
-    department: 'Users',
-    status: 'Active',
-  },
-];
+const roles = ['admin', 'editor', 'viewer'];
+const genders = ['male', 'female', 'other'];
 
-const userColumns = [
-  {
-    field: 'name',
-    headerName: 'User',
-    minWidth: 220,
-    flex: 1,
-    renderCell: (params) => (
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ py: 1 }}>
-        <Avatar>{params.value.charAt(0)}</Avatar>
-        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-          {params.value}
-        </Typography>
-      </Stack>
-    ),
-  },
-  {
-    field: 'email',
-    headerName: 'Email',
-    minWidth: 220,
-    flex: 1,
-  },
-  {
-    field: 'role',
-    headerName: 'Role',
-    minWidth: 140,
-    flex: 0.8,
-  },
-  {
-    field: 'department',
-    headerName: 'Department',
-    minWidth: 150,
-    flex: 0.9,
-  },
-  {
-    field: 'status',
-    headerName: 'Status',
-    minWidth: 140,
-    flex: 0.7,
-    renderCell: (params) => {
-      const colorMap = {
-        Active: 'success',
-        Inactive: 'default',
-        Pending: 'warning',
-      };
+const blankForm = {
+  firstName: '',
+  lastName: '',
+  age: '',
+  gender: '',
+  contactNumber: '',
+  email: '',
+  role: 'editor',
+  username: '',
+  password: '',
+  address: '',
+  isActive: true,
+};
 
-      return (
-        <Chip
-          label={params.value}
-          color={colorMap[params.value] || 'default'}
-          size="small"
-          variant={params.value === 'Inactive' ? 'outlined' : 'filled'}
-        />
-      );
-    },
+const labelize = (value) => (value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : '');
+
+const loadUsers = () => {
+  try {
+    return {
+      users: JSON.parse(usersSeed).map((user, index) => ({
+        id: Number(user.id) || index + 1,
+        firstName: String(user.firstName ?? '').trim(),
+        lastName: String(user.lastName ?? '').trim(),
+        age: String(user.age ?? '').trim(),
+        gender: genders.includes(String(user.gender ?? '').trim().toLowerCase())
+          ? String(user.gender ?? '').trim().toLowerCase()
+          : '',
+        contactNumber: String(user.contactNumber ?? '').trim(),
+        email: String(user.email ?? '').trim().toLowerCase(),
+        role: roles.includes(String(user.role ?? '').trim().toLowerCase())
+          ? String(user.role ?? '').trim().toLowerCase()
+          : 'editor',
+        username: String(user.username ?? '').trim().toLowerCase(),
+        password: String(user.password ?? ''),
+        address: String(user.address ?? '').trim(),
+        isActive: typeof user.isActive === 'boolean' ? user.isActive : true,
+      })),
+      error: '',
+    };
+  } catch {
+    return {
+      users: [],
+      error: 'Unable to read users from src/assets/users.json.',
+    };
+  }
+};
+
+const seed = loadUsers();
+
+const surfaceSx = {
+  borderRadius: 3,
+  bgcolor: 'rgba(24,24,27,0.88)',
+  color: '#f4f4f5',
+  border: '1px solid rgba(255,255,255,0.08)',
+  boxShadow: '0 18px 40px rgba(0,0,0,0.26)',
+  backdropFilter: 'blur(8px)',
+};
+
+const textFieldSx = {
+  '& .MuiInputBase-root': {
+    bgcolor: 'rgba(9,9,11,0.38)',
+    color: '#f4f4f5',
+    borderRadius: 2,
   },
-];
+  '& .MuiInputLabel-root, & .MuiInputAdornment-root, & .MuiSvgIcon-root': {
+    color: 'rgba(244,244,245,0.66)',
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(196,181,253,0.42)',
+  },
+  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#8b5cf6',
+  },
+};
 
-const userStats = [
-  { label: 'Total Users', value: userRows.length, note: 'Current records' },
-  { label: 'Active Users', value: 4, note: 'Most are currently online' },
-  { label: 'Pending Approval', value: 1, note: 'Needs admin action' },
-];
-
-const quickNotes = [
-  'New users should be reviewed before role assignment.',
-  'Inactive accounts can be archived after final validation.',
-  'Department filters can be added later for easier user monitoring.',
-];
+const dataGridDarkSx = {
+  minWidth: 0,
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 2,
+  bgcolor: 'rgba(9,9,11,0.42)',
+  color: '#f4f4f5',
+  '--DataGrid-containerBackground': 'rgba(24,24,27,0.96)',
+  '& .MuiDataGrid-main': {
+    bgcolor: 'rgba(9,9,11,0.42)',
+  },
+  '& .MuiDataGrid-cell, & .MuiDataGrid-columnHeader': {
+    outline: 'none',
+    borderBottom: '1px solid rgba(255,255,255,0.06)',
+  },
+  '& .MuiDataGrid-columnHeaders, & .MuiDataGrid-columnHeader': {
+    bgcolor: 'rgba(24,24,27,0.96)',
+    color: '#f4f4f5',
+  },
+  '& .MuiDataGrid-columnHeaderTitle': {
+    color: '#f4f4f5',
+    fontWeight: 700,
+  },
+  '& .MuiDataGrid-virtualScroller, & .MuiDataGrid-overlayWrapper, & .MuiDataGrid-overlayWrapperInner': {
+    bgcolor: 'rgba(9,9,11,0.42)',
+  },
+  '& .MuiDataGrid-row': {
+    bgcolor: 'rgba(9,9,11,0.18)',
+  },
+  '& .MuiDataGrid-row:hover': {
+    bgcolor: 'rgba(139,92,246,0.1)',
+  },
+  '& .MuiDataGrid-row.Mui-selected': {
+    bgcolor: 'rgba(139,92,246,0.22)',
+    color: '#ffffff',
+  },
+  '& .MuiDataGrid-row.Mui-selected:hover': {
+    bgcolor: 'rgba(139,92,246,0.3)',
+  },
+  '& .MuiDataGrid-cell': {
+    color: 'rgba(244,244,245,0.88)',
+  },
+  '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+    outline: '1px solid rgba(196,181,253,0.55)',
+    outlineOffset: -1,
+  },
+  '& .MuiDataGrid-columnSeparator': {
+    color: 'rgba(255,255,255,0.1)',
+  },
+  '& .MuiDataGrid-footerContainer': {
+    bgcolor: 'rgba(24,24,27,0.96)',
+    borderTop: '1px solid rgba(255,255,255,0.1)',
+  },
+  '& .MuiCheckbox-root, & .MuiTablePagination-root, & .MuiSvgIcon-root': {
+    color: 'rgba(244,244,245,0.78)',
+  },
+};
 
 const UsersPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [users, setUsers] = useState(seed.users);
+  const [modal, setModal] = useState({ open: false, id: null });
+  const [form, setForm] = useState(blankForm);
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [genderFilter, setGenderFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const resetForm = () => {
+    setForm({ ...blankForm });
+    setErrors({});
+  };
+
+  const openModal = (user) => {
+    setModal({ open: true, id: user?.id ?? null });
+    setForm(user ? { ...blankForm, ...user } : { ...blankForm });
+    setErrors({});
+  };
+
+  const closeModal = () => {
+    setModal({ open: false, id: null });
+    setShowPassword(false);
+    resetForm();
+  };
+
+  const handleChange = ({ target: { name, value, checked, type } }) => {
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const filteredUsers = users.filter((user) => {
+    const query = search.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      [
+        user.firstName,
+        user.lastName,
+        user.email,
+        user.username,
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(query);
+
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const matchesGender = genderFilter === 'all' || user.gender === genderFilter;
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'active' && user.isActive) ||
+      (statusFilter === 'inactive' && !user.isActive);
+
+    return matchesSearch && matchesRole && matchesGender && matchesStatus;
+  });
+
+  const activeUsers = users.filter((user) => user.isActive).length;
+  const adminUsers = users.filter((user) => user.role === 'admin').length;
+  const summaryStats = [
+    { label: 'Total Users', value: users.length, icon: PeopleIcon, color: '#8b5cf6' },
+    { label: 'Active Users', value: activeUsers, icon: CheckCircleIcon, color: '#10b981' },
+    { label: 'Admins', value: adminUsers, icon: FilterListIcon, color: '#38bdf8' },
+  ];
+
+  const validate = () => {
+    const nextErrors = {};
+    const email = form.email.trim().toLowerCase();
+    const username = form.username.trim().toLowerCase();
+    const age = form.age.trim();
+    const contactNumber = form.contactNumber.trim();
+
+    [
+      ['firstName', 'First name'],
+      ['lastName', 'Last name'],
+      ['age', 'Age'],
+      ['gender', 'Gender'],
+      ['contactNumber', 'Contact number'],
+      ['email', 'Email'],
+      ['role', 'Role'],
+      ['username', 'Username'],
+      ['password', 'Password'],
+      ['address', 'Address'],
+    ].forEach(([key, label]) => {
+      if (!String(form[key]).trim()) {
+        nextErrors[key] = `${label} is required.`;
+      }
+    });
+
+    if (!nextErrors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      nextErrors.email = 'Enter a valid email address.';
+    }
+
+    if (!nextErrors.password && form.password.trim().length < 8) {
+      nextErrors.password = 'Password must be at least 8 characters.';
+    }
+
+    if (!nextErrors.contactNumber && !/^\d{11}$/.test(contactNumber)) {
+      nextErrors.contactNumber = 'Contact number must be exactly 11 digits.';
+    }
+
+    if (!nextErrors.age && !/^\d+$/.test(age)) {
+      nextErrors.age = 'Age must contain numbers only.';
+    }
+
+    if (!nextErrors.username && /\s/.test(form.username)) {
+      nextErrors.username = 'Username must not contain spaces.';
+    }
+
+    if (!nextErrors.email && users.some((user) => user.id !== modal.id && user.email === email)) {
+      nextErrors.email = 'Email address already exists.';
+    }
+
+    if (!nextErrors.username && users.some((user) => user.id !== modal.id && user.username === username)) {
+      nextErrors.username = 'Username already exists.';
+    }
+
+    return nextErrors;
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const nextErrors = validate();
+
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    const nextUser = {
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      age: form.age.trim(),
+      gender: form.gender.trim().toLowerCase(),
+      contactNumber: form.contactNumber.trim(),
+      email: form.email.trim().toLowerCase(),
+      role: form.role.trim().toLowerCase(),
+      username: form.username.trim().toLowerCase(),
+      password: form.password,
+      address: form.address.trim(),
+      isActive: form.isActive,
+    };
+
+    setUsers((prev) =>
+      modal.id
+        ? prev.map((user) => (user.id === modal.id ? { ...user, ...nextUser } : user))
+        : [
+            ...prev,
+            {
+              id: prev.reduce((max, user) => Math.max(max, Number(user.id) || 0), 0) + 1,
+              ...nextUser,
+            },
+          ]
+    );
+
+    closeModal();
+  };
+
+  const toggleStatus = (id) => {
+    setUsers((prev) =>
+      prev.map((user) => (user.id === id ? { ...user, isActive: !user.isActive } : user))
+    );
+  };
+
+  const fieldProps = (name, label, extra = {}) => ({
+    name,
+    label,
+    value: form[name],
+    onChange: handleChange,
+    error: Boolean(errors[name]),
+    helperText: errors[name],
+    fullWidth: true,
+    sx: textFieldSx,
+    ...extra,
+  });
+
+  const columns = [
+    { field: 'id', headerName: 'ID', width: 80 },
+    {
+      field: 'fullName',
+      headerName: 'Full Name',
+      flex: 1,
+      minWidth: 170,
+      valueGetter: (_, row) => `${row.firstName} ${row.lastName}`.trim(),
+    },
+    { field: 'username', headerName: 'Username', minWidth: 150 },
+    { field: 'age', headerName: 'Age', width: 90 },
+    {
+      field: 'gender',
+      headerName: 'Gender',
+      minWidth: 110,
+      valueGetter: (_, row) => labelize(row.gender),
+    },
+    { field: 'contactNumber', headerName: 'Contact Number', minWidth: 160 },
+    { field: 'email', headerName: 'Email', flex: 1.1, minWidth: 220 },
+    {
+      field: 'role',
+      headerName: 'Role',
+      minWidth: 120,
+      valueGetter: (_, row) => labelize(row.role),
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params) => (
+        <Chip
+          size="small"
+          label={params.row.isActive ? 'Active' : 'Inactive'}
+          sx={{
+            minWidth: 76,
+            fontWeight: 700,
+            color: params.row.isActive ? '#dcfce7' : '#e5e7eb',
+            bgcolor: params.row.isActive ? 'rgba(34,197,94,0.65)' : 'rgba(113,113,122,0.22)',
+            border: `1px solid ${params.row.isActive ? 'rgba(134,239,172,0.35)' : 'rgba(212,212,216,0.32)'}`,
+            '& .MuiChip-label': { px: 1.25 },
+          }}
+        />
+      ),
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      minWidth: 220,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1} sx={{ py: 0.5 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => openModal(params.row)}
+            sx={{
+              borderColor: 'rgba(56,189,248,0.42)',
+              color: '#7dd3fc',
+              borderRadius: 1.5,
+              '&:hover': {
+                borderColor: '#38bdf8',
+                bgcolor: 'rgba(56,189,248,0.1)',
+              },
+            }}
+          >
+            Edit
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => toggleStatus(params.row.id)}
+            sx={{
+              borderRadius: 1.5,
+              color: '#ffffff',
+              bgcolor: params.row.isActive ? '#f97316' : '#16a34a',
+              '&:hover': {
+                bgcolor: params.row.isActive ? '#ea580c' : '#15803d',
+              },
+            }}
+          >
+            {params.row.isActive ? 'Disable' : 'Activate'}
+          </Button>
+        </Stack>
+      ),
+    },
+  ];
+
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} sx={{ width: '100%', minWidth: 0 }}>
       <Paper
         elevation={0}
         sx={{
           p: { xs: 3, md: 4 },
-          borderRadius: 4,
+          borderRadius: 3,
           color: 'common.white',
           background:
-            'linear-gradient(135deg, rgba(94,53,177,1) 0%, rgba(30,136,229,1) 55%, rgba(0,137,123,1) 100%)',
+            'linear-gradient(135deg, rgba(24,24,27,0.96) 0%, rgba(49,46,129,0.88) 58%, rgba(14,165,233,0.76) 100%)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.35)',
         }}
       >
-        <Stack spacing={2}>
-          <Chip
-            label="Users Directory"
-            sx={{ alignSelf: 'flex-start', bgcolor: 'rgba(255,255,255,0.16)', color: 'white' }}
-          />
-          <Typography variant="h3" sx={{ fontWeight: 700 }}>
-            User list and account details
-          </Typography>
-          <Typography sx={{ maxWidth: 720, opacity: 0.92 }}>
-            This page provides a clean user directory with roles, departments, and
-            account status so administrators can review user details quickly.
-          </Typography>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems={{ md: 'center' }} justifyContent="space-between">
+          <Box>
+            <Chip
+              label="User Directory"
+              sx={{ mb: 2, bgcolor: 'rgba(196,181,253,0.16)', color: '#ddd6fe' }}
+            />
+            <Typography variant="h3" sx={{ fontWeight: 700 }}>
+              Manage access and profiles
+            </Typography>
+            <Typography sx={{ mt: 1.5, maxWidth: 680, color: 'rgba(255,255,255,0.78)' }}>
+              Search, filter, update, and activate user accounts from one focused admin workspace.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<PersonAddIcon />}
+            onClick={() => openModal()}
+            sx={{
+              width: { xs: '100%', sm: 'auto' },
+              bgcolor: '#ffffff',
+              color: '#111827',
+              borderRadius: 2,
+              '&:hover': { bgcolor: '#e5e7eb' },
+            }}
+          >
+            Add User
+          </Button>
         </Stack>
       </Paper>
 
       <Box
         sx={{
           display: 'grid',
-          gap: 2,
+          gap: 3,
           gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
         }}
       >
-        {userStats.map((stat) => (
-          <Card key={stat.label} sx={{ borderRadius: 3 }}>
-            <CardContent>
-              <Typography variant="overline" color="text.secondary">
-                {stat.label}
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+        {summaryStats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Paper key={stat.label} elevation={0} sx={{ ...surfaceSx, p: 2.5, position: 'relative', overflow: 'hidden' }}>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: -28,
+                  right: -24,
+                  width: 86,
+                  height: 86,
+                  borderRadius: '50%',
+                  bgcolor: `${stat.color}24`,
+                }}
+              />
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ position: 'relative' }}>
+                <Icon sx={{ color: stat.color }} />
+                <Typography variant="overline" sx={{ color: 'rgba(244,244,245,0.66)', fontWeight: 700 }}>
+                  {stat.label}
+                </Typography>
+              </Stack>
+              <Typography variant="h3" sx={{ mt: 1, fontWeight: 700, position: 'relative' }}>
                 {stat.value}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {stat.note}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
+            </Paper>
+          );
+        })}
       </Box>
 
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 3,
-          gridTemplateColumns: { xs: '1fr', lg: '1.35fr 0.65fr' },
+      <Paper sx={{ ...surfaceSx, p: { xs: 1.5, sm: 2 }, minWidth: 0 }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+          <FilterListIcon sx={{ color: '#c4b5fd' }} />
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Filters
+          </Typography>
+        </Stack>
+        <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2}>
+          <TextField
+            fullWidth
+            placeholder="Search users by first name, last name, email, or username"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            sx={textFieldSx}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+          <TextField
+            select
+            label="Role"
+            value={roleFilter}
+            onChange={(event) => setRoleFilter(event.target.value)}
+            sx={{ ...textFieldSx, minWidth: { xs: '100%', sm: 180 } }}
+          >
+            <MenuItem value="all">All Roles</MenuItem>
+            {roles.map((role) => (
+              <MenuItem key={role} value={role}>
+                {labelize(role)}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            label="Gender"
+            value={genderFilter}
+            onChange={(event) => setGenderFilter(event.target.value)}
+            sx={{ ...textFieldSx, minWidth: { xs: '100%', sm: 180 } }}
+          >
+            <MenuItem value="all">All Genders</MenuItem>
+            {genders.map((gender) => (
+              <MenuItem key={gender} value={gender}>
+                {labelize(gender)}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            label="Status"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            sx={{ ...textFieldSx, minWidth: { xs: '100%', sm: 180 } }}
+          >
+            <MenuItem value="all">All Status</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="inactive">Inactive</MenuItem>
+          </TextField>
+        </Stack>
+      </Paper>
+
+      {seed.error ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {seed.error}
+        </Alert>
+      ) : null}
+
+      <Paper sx={{ ...surfaceSx, p: { xs: 1.5, sm: 2 }, minWidth: 0, overflow: 'hidden' }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="space-between" alignItems={{ sm: 'center' }} sx={{ mb: 2 }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              User Records
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(244,244,245,0.66)' }}>
+              Showing {filteredUsers.length} of {users.length} accounts
+            </Typography>
+          </Box>
+        </Stack>
+        {filteredUsers.length ? (
+          <Box sx={{ height: { xs: 460, sm: 520 }, width: '100%', minWidth: 0 }}>
+            <DataGrid
+              rows={filteredUsers}
+              columns={columns}
+              disableRowSelectionOnClick
+              pageSizeOptions={[5, 10]}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 5, page: 0 } },
+              }}
+              sx={dataGridDarkSx}
+            />
+          </Box>
+        ) : (
+          <Alert severity="info">
+            No users match the current search or filter. Try changing the search text,
+            role, or status filter.
+          </Alert>
+        )}
+      </Paper>
+
+      <Dialog
+        open={modal.open}
+        onClose={closeModal}
+        fullWidth
+        fullScreen={isMobile}
+        maxWidth="md"
+        PaperProps={{
+          sx: {
+            bgcolor: '#18181b',
+            color: '#f4f4f5',
+            borderRadius: { xs: 0, sm: 3 },
+            border: '1px solid rgba(255,255,255,0.1)',
+          },
         }}
       >
-        <Card sx={{ borderRadius: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Users Table
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Review user information, roles, departments, and account status in one table.
-            </Typography>
-            <Box sx={{ height: 420, width: '100%' }}>
-              <DataGrid
-                rows={userRows}
-                columns={userColumns}
-                initialState={{
-                  pagination: {
-                    paginationModel: {
-                      pageSize: 5,
+        <Box component="form" onSubmit={handleSubmit}>
+          <DialogTitle sx={{ fontWeight: 700 }}>{modal.id ? 'Edit User' : 'Add User'}</DialogTitle>
+          <DialogContent dividers sx={{ px: { xs: 2, sm: 3 }, borderColor: 'rgba(255,255,255,0.08)' }}>
+            <Stack spacing={2} sx={{ pt: 1 }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField {...fieldProps('firstName', 'First Name')} />
+                <TextField {...fieldProps('lastName', 'Last Name')} />
+              </Stack>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField {...fieldProps('age', 'Age')} />
+                <TextField {...fieldProps('gender', 'Gender', { select: true })}>
+                  {genders.map((gender) => (
+                    <MenuItem key={gender} value={gender}>
+                      {labelize(gender)}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField {...fieldProps('contactNumber', 'Contact Number')} />
+                <TextField {...fieldProps('email', 'Email Address', { type: 'email' })} />
+              </Stack>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField {...fieldProps('role', 'Role', { select: true })}>
+                  {roles.map((role) => (
+                    <MenuItem key={role} value={role}>
+                      {labelize(role)}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField {...fieldProps('username', 'Username')} />
+              </Stack>
+
+              <TextField
+                {...fieldProps('password', 'Password', {
+                  type: showPassword ? 'text' : 'password',
+                  slotProps: {
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            edge="end"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            onMouseDown={(event) => event.preventDefault()}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
                     },
                   },
-                }}
-                pageSizeOptions={[5]}
-                disableRowSelectionOnClick
+                })}
               />
-            </Box>
-          </CardContent>
-        </Card>
 
-        <Card sx={{ borderRadius: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Quick Notes
-            </Typography>
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              {quickNotes.map((note) => (
-                <Paper
-                  key={note}
-                  variant="outlined"
-                  sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default' }}
-                >
-                  <Typography variant="body2">{note}</Typography>
-                </Paper>
-              ))}
+              <TextField {...fieldProps('address', 'Address', { multiline: true, rows: 3 })} />
+
+              <FormControlLabel
+                control={<Switch name="isActive" checked={form.isActive} onChange={handleChange} />}
+                label={form.isActive ? 'User status: Active' : 'User status: Inactive'}
+                sx={{ color: 'rgba(244,244,245,0.78)' }}
+              />
             </Stack>
-          </CardContent>
-        </Card>
-      </Box>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <Button onClick={closeModal} sx={{ color: '#ddd6fe' }}>Cancel</Button>
+            <Button type="submit" variant="contained" sx={{ borderRadius: 2, bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}>
+              {modal.id ? 'Update User' : 'Save User'}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
     </Stack>
   );
 };

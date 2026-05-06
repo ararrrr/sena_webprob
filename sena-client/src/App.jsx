@@ -13,7 +13,7 @@ import SignUpPage from './pages/AuthPages/SignUpPage.jsx';
 import NotFoundPage from './pages/LandingPages/NotFoundPage.jsx';
 import DashLayout from './layouts/DashLayout.jsx';
 import DashboardPage from './pages/DashboardPages/DashboardPage.jsx';
-import ReportsPage from './pages/DashboardPages/Reports.jsx';
+import ReportsPage from './pages/DashboardPages/ReportsPage.jsx';
 import UsersPage from './pages/DashboardPages/UsersPage.jsx';
 
 const routes = [
