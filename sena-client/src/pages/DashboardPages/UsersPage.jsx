@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Box,
@@ -28,10 +28,15 @@ import PeopleIcon from '@mui/icons-material/People';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { DataGrid } from '@mui/x-data-grid';
-import usersSeed from '../../data/users.json?raw';
+import {
+  createUser,
+  deleteUser,
+  fetchUsers,
+  updateUser,
+} from '../../services/UserService';
 
-const roles = ['admin', 'editor', 'viewer'];
-const genders = ['male', 'female', 'other'];
+const types = ['admin', 'editor', 'viewer'];
+const genders = ['male', 'female'];
 
 const blankForm = {
   firstName: '',
@@ -40,7 +45,7 @@ const blankForm = {
   gender: '',
   contactNumber: '',
   email: '',
-  role: 'editor',
+  type: 'editor',
   username: '',
   password: '',
   address: '',
@@ -49,39 +54,6 @@ const blankForm = {
 
 const labelize = (value) => (value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : '');
 const normalize = (value) => String(value ?? '').trim();
-
-const loadUsers = () => {
-  try {
-    return {
-      users: JSON.parse(usersSeed).map((user, index) => ({
-        id: Number(user.id) || index + 1,
-        firstName: normalize(user.firstName),
-        lastName: normalize(user.lastName),
-        age: normalize(user.age),
-        gender: genders.includes(normalize(user.gender).toLowerCase())
-          ? normalize(user.gender).toLowerCase()
-          : '',
-        contactNumber: normalize(user.contactNumber),
-        email: normalize(user.email).toLowerCase(),
-        role: roles.includes(normalize(user.role).toLowerCase())
-          ? normalize(user.role).toLowerCase()
-          : 'editor',
-        username: normalize(user.username).toLowerCase(),
-        password: String(user.password ?? ''),
-        address: normalize(user.address),
-        isActive: typeof user.isActive === 'boolean' ? user.isActive : true,
-      })),
-      error: '',
-    };
-  } catch {
-    return {
-      users: [],
-      error: 'Unable to read users from src/data/users.json.',
-    };
-  }
-};
-
-const seed = loadUsers();
 
 const surfaceSx = {
   borderRadius: 3,
@@ -160,31 +132,66 @@ const dataGridDarkSx = {
   },
 };
 
+const toRow = (user) => ({
+  ...user,
+  id: user._id || user.id,
+  firstName: normalize(user.firstName),
+  lastName: normalize(user.lastName),
+  age: normalize(user.age),
+  gender: normalize(user.gender).toLowerCase(),
+  contactNumber: normalize(user.contactNumber),
+  email: normalize(user.email).toLowerCase(),
+  type: normalize(user.type).toLowerCase() || 'editor',
+  username: normalize(user.username).toLowerCase(),
+  address: normalize(user.address),
+  isActive: typeof user.isActive === 'boolean' ? user.isActive : true,
+});
+
 const UsersPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [users, setUsers] = useState(seed.users);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState({ open: false, id: null });
   const [form, setForm] = useState(blankForm);
   const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [genderFilter, setGenderFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const resetForm = () => setForm({ ...blankForm });
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setMessage('');
+      const { data } = await fetchUsers();
+      setUsers((data.users || data || []).map(toRow));
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setMessage(error.response?.data?.message || 'Unable to fetch users.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const openModal = (user) => {
     setModal({ open: true, id: user?.id ?? null });
-    setForm(user ? { ...blankForm, ...user } : { ...blankForm });
+    setForm(user ? { ...blankForm, ...user, password: '' } : { ...blankForm });
     setErrors({});
+    setMessage('');
   };
 
   const closeModal = () => {
     setModal({ open: false, id: null });
     setShowPassword(false);
-    resetForm();
+    setForm({ ...blankForm });
+    setErrors({});
   };
 
   const handleChange = ({ target: { name, value, checked, type } }) => {
@@ -199,19 +206,19 @@ const UsersPage = () => {
   const filteredUsers = users.filter((user) => {
     const rowText = [user.firstName, user.lastName, user.email, user.username].join(' ').toLowerCase();
     const matchesSearch = !query || rowText.includes(query);
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const matchesType = typeFilter === 'all' || user.type === typeFilter;
     const matchesGender = genderFilter === 'all' || user.gender === genderFilter;
     const matchesStatus =
       statusFilter === 'all' ||
       (statusFilter === 'active' && user.isActive) ||
       (statusFilter === 'inactive' && !user.isActive);
-    return matchesSearch && matchesRole && matchesGender && matchesStatus;
+    return matchesSearch && matchesType && matchesGender && matchesStatus;
   });
 
   const summaryStats = [
     { label: 'Total Users', value: users.length, icon: PeopleIcon, color: '#8b5cf6' },
     { label: 'Active Users', value: users.filter((user) => user.isActive).length, icon: CheckCircleIcon, color: '#10b981' },
-    { label: 'Admins', value: users.filter((user) => user.role === 'admin').length, icon: FilterListIcon, color: '#38bdf8' },
+    { label: 'Admins', value: users.filter((user) => user.type === 'admin').length, icon: FilterListIcon, color: '#38bdf8' },
   ];
 
   const labels = {
@@ -221,9 +228,8 @@ const UsersPage = () => {
     gender: 'Gender',
     contactNumber: 'Contact number',
     email: 'Email',
-    role: 'Role',
+    type: 'Type',
     username: 'Username',
-    password: 'Password',
     address: 'Address',
   };
 
@@ -233,15 +239,19 @@ const UsersPage = () => {
     const username = normalize(form.username).toLowerCase();
     const age = normalize(form.age);
     const contactNumber = normalize(form.contactNumber);
+    const password = String(form.password ?? '').trim();
 
     Object.keys(labels).forEach((key) => {
       if (!normalize(form[key])) nextErrors[key] = `${labels[key]} is required.`;
     });
+    if (!modal.id && !password) {
+      nextErrors.password = 'Password is required.';
+    }
+    if (password && password.length < 8) {
+      nextErrors.password = 'Password must be at least 8 characters.';
+    }
     if (!nextErrors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       nextErrors.email = 'Enter a valid email address.';
-    }
-    if (!nextErrors.password && String(form.password).trim().length < 8) {
-      nextErrors.password = 'Password must be at least 8 characters.';
     }
     if (!nextErrors.contactNumber && !/^\d{11}$/.test(contactNumber)) {
       nextErrors.contactNumber = 'Contact number must be exactly 11 digits.';
@@ -261,7 +271,7 @@ const UsersPage = () => {
     return nextErrors;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const nextErrors = validate();
     if (Object.keys(nextErrors).length) {
@@ -269,36 +279,61 @@ const UsersPage = () => {
       return;
     }
 
-    const nextUser = {
+    const userPayload = {
       firstName: normalize(form.firstName),
       lastName: normalize(form.lastName),
       age: normalize(form.age),
       gender: normalize(form.gender).toLowerCase(),
       contactNumber: normalize(form.contactNumber),
       email: normalize(form.email).toLowerCase(),
-      role: normalize(form.role).toLowerCase(),
+      type: normalize(form.type).toLowerCase(),
       username: normalize(form.username).toLowerCase(),
-      password: String(form.password),
       address: normalize(form.address),
       isActive: form.isActive,
     };
 
-    setUsers((current) =>
-      modal.id
-        ? current.map((user) => (user.id === modal.id ? { ...user, ...nextUser } : user))
-        : [
-            ...current,
-            {
-              id: current.reduce((max, user) => Math.max(max, Number(user.id) || 0), 0) + 1,
-              ...nextUser,
-            },
-          ]
-    );
-    closeModal();
+    if (String(form.password ?? '').trim()) {
+      userPayload.password = form.password;
+    }
+
+    try {
+      setLoading(true);
+      setMessage('');
+      if (modal.id) {
+        await updateUser(modal.id, userPayload);
+      } else {
+        await createUser(userPayload);
+      }
+      await loadUsers();
+      closeModal();
+    } catch (error) {
+      console.error('Error saving user:', error);
+      setMessage(error.response?.data?.message || 'Unable to save user.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleStatus = (id) => {
-    setUsers((current) => current.map((user) => (user.id === id ? { ...user, isActive: !user.isActive } : user)));
+  const handleToggleActive = async (id, isActive) => {
+    try {
+      setMessage('');
+      await updateUser(id, { isActive: !isActive });
+      await loadUsers();
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+      setMessage(error.response?.data?.message || 'Unable to update user status.');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      setMessage('');
+      await deleteUser(id);
+      await loadUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      setMessage(error.response?.data?.message || 'Unable to delete user.');
+    }
   };
 
   const fieldProps = (name, label, extra = {}) => ({
@@ -314,15 +349,14 @@ const UsersPage = () => {
   });
 
   const columns = [
-    { field: 'id', headerName: 'ID', width: 80 },
+    { field: 'id', headerName: 'ID', width: 210 },
     {
-      field: 'fullName',
-      headerName: 'Full Name',
+      field: 'name',
+      headerName: 'Name',
       flex: 1,
       minWidth: 170,
       valueGetter: (_, row) => `${row.firstName} ${row.lastName}`.trim(),
     },
-    { field: 'username', headerName: 'Username', minWidth: 150 },
     { field: 'age', headerName: 'Age', width: 90 },
     {
       field: 'gender',
@@ -330,14 +364,11 @@ const UsersPage = () => {
       minWidth: 110,
       valueGetter: (_, row) => labelize(row.gender),
     },
+    { field: 'email', headerName: 'Email', flex: 1, minWidth: 220 },
+    { field: 'type', headerName: 'Type', minWidth: 120, valueGetter: (_, row) => labelize(row.type) },
     { field: 'contactNumber', headerName: 'Contact Number', minWidth: 160 },
-    { field: 'email', headerName: 'Email', flex: 1.1, minWidth: 220 },
-    {
-      field: 'role',
-      headerName: 'Role',
-      minWidth: 120,
-      valueGetter: (_, row) => labelize(row.role),
-    },
+    { field: 'username', headerName: 'Username', minWidth: 150 },
+    { field: 'address', headerName: 'Address', flex: 1, minWidth: 190 },
     {
       field: 'status',
       headerName: 'Status',
@@ -361,11 +392,11 @@ const UsersPage = () => {
     {
       field: 'actions',
       headerName: 'Actions',
-      minWidth: 220,
+      minWidth: 260,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        <Stack direction="row" spacing={1} sx={{ py: 0.5 }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 0.5 }}>
           <Button
             size="small"
             variant="outlined"
@@ -382,20 +413,19 @@ const UsersPage = () => {
           >
             Edit
           </Button>
+          <Switch
+            checked={params.row.isActive}
+            onChange={() => handleToggleActive(params.row.id, params.row.isActive)}
+            color="primary"
+          />
           <Button
             size="small"
-            variant="contained"
-            onClick={() => toggleStatus(params.row.id)}
-            sx={{
-              borderRadius: 1.5,
-              color: '#ffffff',
-              bgcolor: params.row.isActive ? '#f97316' : '#16a34a',
-              '&:hover': {
-                bgcolor: params.row.isActive ? '#ea580c' : '#15803d',
-              },
-            }}
+            variant="outlined"
+            color="error"
+            onClick={() => handleDelete(params.row.id)}
+            sx={{ borderRadius: 1.5 }}
           >
-            {params.row.isActive ? 'Disable' : 'Activate'}
+            Delete
           </Button>
         </Stack>
       ),
@@ -487,11 +517,11 @@ const UsersPage = () => {
               },
             }}
           />
-          <TextField select label="Role" value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)} sx={{ ...textFieldSx, minWidth: { xs: '100%', sm: 180 } }}>
-            <MenuItem value="all">All Roles</MenuItem>
-            {roles.map((role) => (
-              <MenuItem key={role} value={role}>
-                {labelize(role)}
+          <TextField select label="Type" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} sx={{ ...textFieldSx, minWidth: { xs: '100%', sm: 180 } }}>
+            <MenuItem value="all">All Types</MenuItem>
+            {types.map((type) => (
+              <MenuItem key={type} value={type}>
+                {labelize(type)}
               </MenuItem>
             ))}
           </TextField>
@@ -511,9 +541,9 @@ const UsersPage = () => {
         </Stack>
       </Paper>
 
-      {seed.error ? (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {seed.error}
+      {message ? (
+        <Alert severity="error" onClose={() => setMessage('')}>
+          {message}
         </Alert>
       ) : null}
 
@@ -528,23 +558,17 @@ const UsersPage = () => {
             </Typography>
           </Box>
         </Stack>
-        {filteredUsers.length ? (
-          <Box sx={{ height: { xs: 460, sm: 520 }, width: '100%', minWidth: 0 }}>
-            <DataGrid
-              rows={filteredUsers}
-              columns={columns}
-              disableRowSelectionOnClick
-              pageSizeOptions={[5, 10]}
-              initialState={{ pagination: { paginationModel: { pageSize: 5, page: 0 } } }}
-              sx={dataGridDarkSx}
-            />
-          </Box>
-        ) : (
-          <Alert severity="info">
-            No users match the current search or filter. Try changing the search text,
-            role, or status filter.
-          </Alert>
-        )}
+        <Box sx={{ height: { xs: 460, sm: 560 }, width: '100%', minWidth: 0 }}>
+          <DataGrid
+            rows={filteredUsers}
+            columns={columns}
+            loading={loading}
+            disableRowSelectionOnClick
+            pageSizeOptions={[5, 10, 20]}
+            initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
+            sx={dataGridDarkSx}
+          />
+        </Box>
       </Paper>
 
       <Dialog
@@ -585,18 +609,19 @@ const UsersPage = () => {
                 <TextField {...fieldProps('email', 'Email Address', { type: 'email' })} />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField {...fieldProps('role', 'Role', { select: true })}>
-                  {roles.map((role) => (
-                    <MenuItem key={role} value={role}>
-                      {labelize(role)}
+                <TextField {...fieldProps('type', 'Type', { select: true })}>
+                  {types.map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {labelize(type)}
                     </MenuItem>
                   ))}
                 </TextField>
                 <TextField {...fieldProps('username', 'Username')} />
               </Stack>
               <TextField
-                {...fieldProps('password', 'Password', {
+                {...fieldProps('password', modal.id ? 'New Password' : 'Password', {
                   type: showPassword ? 'text' : 'password',
+                  helperText: errors.password || (modal.id ? 'Leave blank to keep the current password.' : ''),
                   slotProps: {
                     input: {
                       endAdornment: (
@@ -627,7 +652,7 @@ const UsersPage = () => {
             <Button onClick={closeModal} sx={{ color: '#ddd6fe' }}>
               Cancel
             </Button>
-            <Button type="submit" variant="contained" sx={{ borderRadius: 2, bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}>
+            <Button type="submit" variant="contained" disabled={loading} sx={{ borderRadius: 2, bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}>
               {modal.id ? 'Update User' : 'Save User'}
             </Button>
           </DialogActions>

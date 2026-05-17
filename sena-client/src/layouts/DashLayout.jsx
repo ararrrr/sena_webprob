@@ -21,6 +21,7 @@ import ListItemText from '@mui/material/ListItemText';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import ArticleIcon from '@mui/icons-material/Article';
 import Button from '@mui/material/Button';
 
 const drawerWidth = 240;
@@ -47,10 +48,17 @@ const dashboardNavItems = [
     icon: AssessmentIcon,
   },
   {
+    label: 'Articles',
+    title: 'Articles',
+    to: '/dashboard/articles',
+    icon: ArticleIcon,
+  },
+  {
     label: 'Users',
     title: 'Users',
     to: '/dashboard/users',
     icon: PeopleIcon,
+    adminOnly: true,
   },
 ];
 
@@ -175,6 +183,9 @@ const DashLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pageTitle = getPageTitle(location.pathname);
+  const userType = localStorage.getItem('type');
+  const firstName = localStorage.getItem('firstName');
+  const visibleNavItems = dashboardNavItems.filter((item) => !item.adminOnly || userType === 'admin');
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -185,6 +196,9 @@ const DashLayout = () => {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('firstName');
+    localStorage.removeItem('type');
     navigate('/');
   };
 
@@ -211,7 +225,7 @@ const DashLayout = () => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 700 }}>
-            {pageTitle}
+            {firstName ? `Welcome, ${firstName}` : pageTitle}
           </Typography>
           <Search>
             <SearchIconWrapper>
@@ -285,7 +299,7 @@ const DashLayout = () => {
         </DrawerHeader>
         <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
         <List sx={{ px: 0, py: 1.25 }}>
-          {dashboardNavItems.map(({ label, to, icon: Icon }) => (
+          {visibleNavItems.map(({ label, to, icon: Icon }) => (
             <ListItem key={to} disablePadding sx={{ display: 'block' }}>
               <ListItemButton
                 component={Link}

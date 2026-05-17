@@ -1,8 +1,10 @@
 import Button from '../../components/Button';
 import ArticleList from '../../components/ArticleList';
-import articles from '../../assets/article-content.js';
+import { getPublicArticles } from '../../services/ArticleService';
 
 const ArticleListPage = () => {
+  const articles = getPublicArticles();
+
   return (
     <div className="relative flex w-full flex-col gap-6 overflow-hidden text-white">
       {/* 🌌 STAR BACKGROUND */}

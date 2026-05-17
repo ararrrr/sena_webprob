@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
+import { loginUser } from '../../services/UserService';
 
 const inputClasses =
   'mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/80 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-white/40 focus:bg-zinc-900 focus:ring-4 focus:ring-white/5';
@@ -12,10 +14,26 @@ const secondaryButtonClassName =
 
 const SignInPage = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    navigate('/');
+
+    try {
+      setError('');
+      const { data } = await loginUser({ email, password });
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('firstName', data.firstName);
+      localStorage.setItem('type', data.type);
+
+      navigate('/dashboard', { state: { firstName: data.firstName, type: data.type } });
+    } catch (err) {
+      console.error('Login failed:', err.response?.data?.message || err.message);
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    }
   };
 
   return (
@@ -27,6 +45,11 @@ const SignInPage = () => {
       <p className="mt-3 max-w-sm text-sm leading-6 text-zinc-300">
         Access your account and continue exploring the universe from where you left off.
       </p>
+      {error && (
+        <p className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          {error}
+        </p>
+      )}
 
       <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
         <div>
@@ -38,6 +61,8 @@ const SignInPage = () => {
             type="email"
             placeholder="you@example.com"
             autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
             required
             className={inputClasses}
           />
@@ -53,6 +78,8 @@ const SignInPage = () => {
             placeholder="Enter your password"
             autoComplete="current-password"
             minLength={8}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
             required
             className={inputClasses}
           />

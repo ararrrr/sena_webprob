@@ -15,6 +15,12 @@ import DashLayout from './layouts/DashLayout.jsx';
 import DashboardPage from './pages/DashboardPages/DashboardPage.jsx';
 import ReportsPage from './pages/DashboardPages/ReportsPage.jsx';
 import UsersPage from './pages/DashboardPages/UsersPage.jsx';
+import DashArticleListPage from './pages/DashboardPages/DashArticleListPage.jsx';
+
+const AdminOnly = ({ children }) => {
+  const type = localStorage.getItem('type');
+  return type === 'admin' ? children : <Navigate to="/dashboard" replace />;
+};
 
 const routes = [
   {
@@ -77,8 +83,16 @@ const routes = [
         element: <ReportsPage />,
       },
       {
+        path: 'articles',
+        element: <DashArticleListPage />,
+      },
+      {
         path: 'users',
-        element: <UsersPage />,
+        element: (
+          <AdminOnly>
+            <UsersPage />
+          </AdminOnly>
+        ),
       },
     ],
   },
