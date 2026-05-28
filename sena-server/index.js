@@ -15,11 +15,18 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "*",
+    origin: [
+      "https://sena-webprob-deploy.vercel.app",
+      "https://sena-webprob-frontend.vercel.app",
+      "http://localhost:5173",
+    ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
+
+app.options("*", cors());
 
 // Test route
 app.get("/", (req, res) => {
@@ -42,4 +49,4 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // For Vercel
-module.exports = app;
+module.exports = app;git add .
