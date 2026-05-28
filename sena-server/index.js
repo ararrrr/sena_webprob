@@ -7,14 +7,11 @@ const userRoutes = require("./routes/useRoutes");
 
 const app = express();
 
-// Connect Database
-connectDB();
-
 // Middleware
 app.use(express.json());
 
 app.use(cors());
-app.options("*", cors());
+app.options('/{*splat}', cors());
 
 // Test route
 app.get("/", (req, res) => {
@@ -22,7 +19,24 @@ app.get("/", (req, res) => {
 });
 
 // Routes
+app.use("/api/users", async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use("/api/users", userRoutes);
+app.use("/users", async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 app.use("/users", userRoutes);
 
 // Error handler

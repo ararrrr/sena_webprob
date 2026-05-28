@@ -1,19 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const connectDB = require('../sena-server/config/db');
 const userRoutes = require('../sena-server/routes/useRoutes');
 
 const app = express();
 
-// Database Connection
-connectDB();
-
 // Middleware
 app.use(express.json());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 
 // CORS Configuration
 const corsOptions = {
@@ -26,7 +21,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options('/{*splat}', cors(corsOptions));
 
 // Security Headers
 app.use((req, res, next) => {
@@ -37,6 +32,19 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Sena server API is running' });
+});
+
+app.use('/api/users', async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use('/api/users', userRoutes);
 
 // Health check endpoint
