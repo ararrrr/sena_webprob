@@ -13,19 +13,7 @@ connectDB();
 // Middleware
 app.use(express.json());
 
-app.use(
-  cors({
-    origin: [
-      "https://sena-webprob-deploy.vercel.app",
-      "https://sena-webprob-frontend.vercel.app",
-      "http://localhost:5173",
-    ],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
-
+app.use(cors());
 app.options("*", cors());
 
 // Test route
@@ -35,6 +23,7 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/api/users", userRoutes);
+app.use("/users", userRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
@@ -45,8 +34,10 @@ app.use((err, req, res, next) => {
 // For local development only
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  app.listen(PORT, () =>
+    console.log(`Server running on port ${PORT}`)
+  );
 }
 
 // For Vercel
-module.exports = app;git add .
+module.exports = app;
