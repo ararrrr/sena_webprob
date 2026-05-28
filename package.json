@@ -1,0 +1,22 @@
+{
+  "name": "sena-fullstack",
+  "version": "1.0.0",
+  "description": "MERN Stack - Sena Application",
+  "private": true,
+  "workspaces": [
+    "sena-server",
+    "sena-client"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=sena-server\" \"npm run dev --workspace=sena-client\"",
+    "build": "npm run build --workspace=sena-client && npm install --workspace=sena-server",
+    "start": "node sena-server/index.js",
+    "install:all": "npm install && npm install --workspace=sena-server && npm install --workspace=sena-client"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
