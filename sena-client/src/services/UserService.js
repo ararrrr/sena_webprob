@@ -1,13 +1,11 @@
 import axios from 'axios';
-import constants from '../constants';
 
-// API Access to Front-end JSON data transformation or decoder
 const API = axios.create({
-  baseURL: `${constants.HOST}/users`,
+  baseURL: `${import.meta.env.VITE_API_URL}/api/users`,
 });
 
 // Fetch users
-export const fetchUsers = (user) => API.get('/', user);
+export const fetchUsers = () => API.get('/');
 
 // Create user
 export const createUser = (user) => API.post('/', user);
