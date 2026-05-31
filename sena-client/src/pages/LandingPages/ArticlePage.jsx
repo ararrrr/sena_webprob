@@ -1,11 +1,39 @@
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Button from '../../components/Button';
-import { getPublicArticles } from '../../services/ArticleService';
+import { getArticle } from '../../services/ArticleService';
 
 function ArticlePage() {
   const { name } = useParams();
-  const articles = getPublicArticles();
-  const article = articles.find(article => article.name === name);
+  const [article, setArticle] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticle = async () => {
+      try {
+        const nextArticle = await getArticle(name);
+        setArticle(nextArticle);
+      } catch {
+        setArticle(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadArticle();
+  }, [name]);
+
+  if (isLoading) {
+    return (
+      <div className="flex w-full flex-col gap-6">
+        <section className="border-y border-zinc-800 bg-transparent px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+          <div className="mx-auto max-w-3xl">
+            <h1 className="text-3xl font-bold text-white">Loading article...</h1>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   if (!article) {
     return (

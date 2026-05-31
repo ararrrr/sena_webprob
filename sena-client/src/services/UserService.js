@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { apiBaseUrl } from './apiBase';
 
 const API = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/api/users`,
+  baseURL: `${apiBaseUrl}/users`,
 });
 
 // Fetch users

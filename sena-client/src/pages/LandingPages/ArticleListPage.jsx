@@ -1,9 +1,19 @@
+import { useEffect, useState } from 'react';
 import Button from '../../components/Button';
 import ArticleList from '../../components/ArticleList';
 import { getPublicArticles } from '../../services/ArticleService';
 
 const ArticleListPage = () => {
-  const articles = getPublicArticles();
+  const [articles, setArticles] = useState([]);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      const nextArticles = await getPublicArticles();
+      setArticles(nextArticles);
+    };
+
+    loadArticles();
+  }, []);
 
   return (
     <div className="relative flex w-full flex-col gap-6 overflow-hidden text-white">

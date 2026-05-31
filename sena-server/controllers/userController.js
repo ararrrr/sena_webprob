@@ -2,6 +2,18 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs'); // For password hashing
 const jwt = require('jsonwebtoken'); // For generating tokens
 
+const createLoginToken = (user) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is not set');
+  }
+
+  return jwt.sign(
+    { id: user._id || user.id || user.email, email: user.email, type: user.type },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+};
+
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({}, '-password'); // Exclude the password field
@@ -82,11 +94,7 @@ const loginUser = async (req, res) => {
     }
 
     // Generate a JWT token
-    const token = jwt.sign(
-      { id: user._id, email: user.email, type: user.type }, // Include type in the token
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+    const token = createLoginToken(user);
 
     res.json({ message: 'Login successful', token, type: user.type, firstName: user.firstName }); // Include type in the response
   } catch (error) {

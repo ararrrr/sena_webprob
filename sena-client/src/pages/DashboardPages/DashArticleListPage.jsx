@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -19,7 +19,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import SearchIcon from '@mui/icons-material/Search';
 import { DataGrid } from '@mui/x-data-grid';
-import { getArticles, saveArticles } from '../../services/ArticleService';
+import { createArticle, getArticles, updateArticle } from '../../services/ArticleService';
 
 const blankArticle = {
   name: '',
@@ -115,16 +115,22 @@ const articleFromForm = (form) => ({
 });
 
 const DashArticleListPage = () => {
-  const [articles, setArticles] = useState(() => getArticles());
+  const [articles, setArticles] = useState([]);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [modal, setModal] = useState({ open: false, id: null });
   const [form, setForm] = useState(blankArticle);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const commitArticles = (nextArticles) => {
-    setArticles(nextArticles);
-    saveArticles(nextArticles);
-  };
+  useEffect(() => {
+    const loadArticles = async () => {
+      const nextArticles = await getArticles();
+      setArticles(nextArticles);
+      setIsLoading(false);
+    };
+
+    loadArticles();
+  }, []);
 
   const filteredArticles = useMemo(() => {
     const search = query.trim().toLowerCase();
@@ -150,34 +156,29 @@ const DashArticleListPage = () => {
     setForm(blankArticle);
   };
 
-  const handleSave = (event) => {
+  const handleSave = async (event) => {
     event.preventDefault();
     const nextArticle = articleFromForm(form);
 
     if (modal.id) {
-      commitArticles(
-        articles.map((article) =>
-          article.id === modal.id ? { ...article, ...nextArticle, id: modal.id } : article
-        )
+      const updatedArticle = await updateArticle(modal.id, nextArticle);
+      setArticles(
+        articles.map((article) => (article.id === modal.id ? updatedArticle : article))
       );
     } else {
-      commitArticles([
-        ...articles,
-        {
-          ...nextArticle,
-          id: nextArticle.name || `article-${Date.now()}`,
-        },
-      ]);
+      const createdArticle = await createArticle(nextArticle);
+      setArticles([createdArticle, ...articles]);
     }
 
     closeModal();
   };
 
-  const handleToggleActive = (id) => {
-    commitArticles(
-      articles.map((article) =>
-        article.id === id ? { ...article, isActive: !article.isActive } : article
-      )
+  const handleToggleActive = async (id) => {
+    const article = articles.find((item) => item.id === id);
+    const updatedArticle = await updateArticle(id, { isActive: !article.isActive });
+
+    setArticles(
+      articles.map((item) => (item.id === id ? updatedArticle : item))
     );
   };
 
@@ -290,6 +291,7 @@ const DashArticleListPage = () => {
           <DataGrid
             rows={filteredArticles}
             columns={columns}
+            loading={isLoading}
             getRowId={(row) => row.id}
             disableRowSelectionOnClick
             pageSizeOptions={[5, 10, 20]}

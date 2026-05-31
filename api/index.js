@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('../sena-server/config/db');
 const userRoutes = require('../sena-server/routes/useRoutes');
+const articleRoutes = require('../sena-server/routes/articleRoutes');
 
 const app = express();
 
@@ -36,16 +37,19 @@ app.get('/', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Sena server API is running' });
 });
 
-app.use('/api/users', async (req, res, next) => {
+const withDatabase = async (req, res, next) => {
   try {
     await connectDB();
     next();
   } catch (error) {
     next(error);
   }
-});
+};
 
+app.use('/api/users', withDatabase);
 app.use('/api/users', userRoutes);
+app.use('/api/articles', withDatabase);
+app.use('/api/articles', articleRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
